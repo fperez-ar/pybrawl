@@ -1,58 +1,62 @@
 import pygame
-import Character as game_char
+import Character as game_character
+import input_handler as input
+import screen_input, helper
+from os import listdir
 
 pygame.init()
+input.init()
 
-display_dimensions = (800,600)
+display_dimensions = (1024,1024)
 title = 'Welcome to pybrawl'
+bg2    = pygame.image.load('bg.jpg')
+bg    = pygame.image.load('bg1.png')
+char  = game_character.AniCharacter( ('xcf/1.png','xcf/2.png','xcf/3.png') )
 
-bg       = pygame.image.load('bg.jpg')
-#fighter1 = pygame.image.load('fighter1')
-char = game_char.Character('fighter1.png')
+#game entities
+g_entities = [char]
 
 #### SET UP
-pygame.display.set_caption(title)
-game_display = pygame.display.set_mode(display_dimensions)
+game_display = pygame.display
+game_surface = pygame.display.set_mode(display_dimensions)
 clock        = pygame.time.Clock()
 
+game_display.set_caption(title)
 
-pygame.joystick.init()
-joystick_exist = (pygame.joystick.get_count() > 0)
+input.on_keydown(pygame.K_ESCAPE, quit)
 
-if (joystick_exist):
-    id_joy = 1
-    stick = pygame.joystick.Joystick(id_joy)
-    stick.init()
+
+
+delta = 0
+gdone = False
 
 char.x_speed = 10
-char.y_speed = 20
+char.y_speed = 10
 
-gquit = False
+print ('character # assigned keyboard')
+func = lambda: char.translate( input.get_axis(0), input.get_axis(1) )
+char.add_update_event( func )
 
 #### LOOP
+while not gdone:
 
-while not gquit:
+### Event handling ###
+  if len ( pygame.event.get(pygame.QUIT) ) > 0 :
+      gdone = True
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            gquit = True
-            #
-        #print(event)
+  input.update( pygame.event.get( (pygame.KEYUP, pygame.KEYDOWN) ), delta)
 
-    #while
-    game_display.blit(bg, (0,0))
+  game_surface.blit( bg2, (0,0))
+  game_surface.blit( bg, (0,0))
 
+  for character in g_entities:
+     character.update()
+     character.render(game_surface)
 
-    ## Move char entity
-    x = stick.get_axis(0)
-    y = stick.get_axis(1)
-    char.translate(x, y)
+  game_display.update()
 
-    game_display.blit( char.sprite, char.get_pos() )
-
-    pygame.display.update()
-    clock.tick(60)
-
+  delta = clock.tick(60)
+####end frame
 
 pygame.quit()
 quit()
